@@ -5,49 +5,55 @@ from tkinter import filedialog
 class Model:
 
     def __init__(self):
-        self.students_file = None
-        self.tasks_file = None
-        self.students_tasks= []
-        self.students = []
-        self.tasks = []
+        self.file_path = None
+        self.longest_name = 0  # kõige pikem nimi, andmete joondamiseks vaja
+        self.students_tasks = []  # õpilased ja neile jagatud ülesanded
+        self.students = []  # õpilased
+        self.tasks = []  # ülesanded
         self.is_tasks = False  # True kui ülesandeid jätkub kõigile õpilastele
 
-    def open_students_file(self):
-        # küsib õpilaste faili avamist > väljund on faili kaloogi tee
-        # TODO lisa kontroll kas fail valiti
-        self.students_file = filedialog.askopenfilename()
+    def open_file(self):
+        """
+        kuvab dialoogi faili avamiseks
+        :return:
+        """
+        # küsib faili avamist > väljund on faili kaloogi tee
+        self.file_path = filedialog.askopenfilename()
 
-        #print(self.opilaste_faili_aadress)
 
-    def read_students_file(self):
-        self.students = []  # list tühjaks
-        f = open(self.students_file, "r", encoding="utf-8")  # Avab faili lugemiseks
+    def read_file(self, is_btn):  # is_btn on stn või tsk
+        self.longest_name = 0  # pikim nimi 0
+
+        # valik kumb list tühjaks teha
+        if is_btn == 'stn':  # vajutati õpilaste nuppu
+            self.students = []  # list tühjaks
+        elif is_btn == 'tsk':  # vajutati ül. nuppu
+            self.tasks = []  # list tühjaks
+
+        f = open(self.file_path, "r", encoding="utf-8")  # Avab faili lugemiseks
         for line in f:  # Loeb ridu failist ükshaaval
             line = line.strip()  # Lõikab rea küljest ära /n
-            self.students.append(line)  # Kirjutab õpilaste nimed listi
-        #print(self.students)
+            if is_btn == 'stn':  # vajutati õpilaste nuppu
+                self.students.append(line)  # Kirjutab õpilaste nimed listi
+                if len(line) > self.longest_name:  # võrdleb nimepikkust, kui on suurem siis
+                    self.longest_name = len(line)  # kirjutab mällu pikema nime tähtede arvu
+            elif is_btn == 'tsk':  # vajutati ül. nuppu
+                self.tasks.append(line)  # Kirjutab tööde nimed listi
+        f.close()  # sulgeb faili
 
-    def open_tasks_file(self):
-        # küsib õpilaste faili avamist > väljund on faili kaloogi tee
-        # TODO lisa kontroll kas fail valiti
-        self.tasks_file = filedialog.askopenfilename()
-
-    def read_tasks_file(self):
-        self.tasks = []  # list tühjaks
-        f = open(self.tasks_file, "r", encoding="utf-8")  # Avab faili lugemiseks
-        for line in f:  # Loeb ridu failist ükshaaval
-            line = line.strip()  # Lõikab rea küljest ära /n
-            self.tasks.append(line)  # Kirjutab õpilaste nimed listi
 
     def mix_tasks_for_students(self):
-
-        random.shuffle(self.tasks)
+        """
+        Jagab ülesanded õpilastele
+        :return:
+        """
+        self.students_tasks = []  # list tühjaks
+        random.shuffle(self.tasks)  # segab listis andmed
         x = 0
-        for s in self.students:
-            self.students_tasks.append(s + " - " + self.tasks[x])  # liidab kokku õpilase ja ülesande
+        for s in self.students:  # liidab kaks listi
+            # joondab listi pikima nime järgi
+            self.students_tasks.append(str(s).ljust(self.longest_name + 2) + " - " + self.tasks[x])  # liidab kokku õpilase ja ülesande
             x += 1
-
-
 
 
     def set_tasks(self):
@@ -55,9 +61,8 @@ class Model:
         Kontroll kas ülesandeid jätkub igale õpilasele
         kui ülesandeid on vähem kui õpilasi, siis false ja teavitab kasutajat
         """
-        if len(self.tasks) < len(self.students):
+        if len(self.tasks) < len(self.students):  # kas ül. list on väiksem kui õpilaste list
             self.is_tasks = False
         else:
             self.is_tasks = True
-        print('self.is_tasks', self.is_tasks)
-        # return self.is_tasks
+
